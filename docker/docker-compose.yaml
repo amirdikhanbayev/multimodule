@@ -1,0 +1,20 @@
+version: '3'
+services:
+  postgres-db:
+    image: postgres:latest
+    container_name: postgres-db
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+
+  mongo-db:
+    image: mongo:latest
+    container_name: mongo-db
+    ports:
+      - "27021:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
