@@ -29,7 +29,12 @@ public class UserDetailServiceImpl implements UserDetailsService {
         if(user.isEmpty()){
             throw new UsernameNotFoundException(username);
         }
-        return new User(user.get().getUsername(), user.get().getPassword(), mapRoles(user.get().getRoles()));
+        return CustomUserDetail.builder()
+                .id(user.get().getId())
+                .username(user.get().getUsername())
+                .password(user.get().getPassword())
+                .authorities(mapRoles(user.get().getRoles()))
+                .build();
     }
 
     private Collection<GrantedAuthority> mapRoles(List<Roles> roles){

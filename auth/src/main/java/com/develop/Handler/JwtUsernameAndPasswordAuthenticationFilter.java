@@ -1,5 +1,6 @@
 package com.develop.Handler;
 
+import com.develop.UserDetail.CustomUserDetail;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -26,7 +27,6 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
 
     private final AuthenticationManager authenticationManager;
 
-
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
@@ -50,14 +50,24 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
                                             HttpServletResponse response,
                                             FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException {
+        CustomUserDetail userDetail = (CustomUserDetail) authResult.getPrincipal();
         String token = Jwts.builder()
                 .setSubject(authResult.getName())
-                .claim("authorities", authResult.getAuthorities())
-                .claim("credentials", authResult.getCredentials())
+                .claim("user_id", userDetail.getId())
+                .claim("username", userDetail.getUsername())
+                .claim("roles", userDetail.getAuthorities())
                 .setIssuer(String.valueOf(LocalDateTime.now()))
                 .setExpiration(java.sql.Date.valueOf(LocalDate.now().plusWeeks(2)))
                         .signWith(SignatureAlgorithm.HS256, TextCodec.BASE64.decode("secret"))
                                 .compact();
-        response.addHeader("Authorization", "Bearer" + token);
+        response.addHeader("Authorization", "Bearer " + token);
+
+        String refreshToken = Jwts.builder()
+                .setSubject(authResult.getName())
+                .setIssuer(String.valueOf(LocalDateTime.now()))
+                .setExpiration(java.sql.Date.valueOf(LocalDate.now().plusWeeks(4)))
+                .signWith(SignatureAlgorithm.HS256, TextCodec.BASE64.decode("secret"))
+                .compact();
+        response.addHeader("Refresh", refreshToken);
     }
 }

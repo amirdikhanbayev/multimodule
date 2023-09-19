@@ -5,23 +5,31 @@ import com.develop.Model.Users;
 import com.develop.Repository.RoleRepository;
 import com.develop.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.quartz.QuartzTransactionManager;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
 
     @PostMapping("/create")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Users> create(@RequestBody Users users){
+        users.setPassword(passwordEncoder.encode(users.getPassword()));
         return ResponseEntity.ok(userRepository.save(users));
     }
+
 
     @DeleteMapping("/delete-by-username/{username}")
     public ResponseEntity<Users> deleteByUsername(@PathVariable String username){
@@ -44,6 +52,11 @@ public class AuthController {
     public ResponseEntity<Users> addRole(@PathVariable String name, @PathVariable String roleName){
         Users users = userRepository.findByUsername(name).orElseThrow(EntityNotFoundException::new);
         Roles role = roleRepository.findRolesByName(roleName).orElseThrow(EntityNotFoundException::new);
+        List<Roles> roles = users.getRoles();
+        if (Objects.isNull(roles)) {
+            roles = new ArrayList<>();
+            users.setRoles(roles);
+        }
         users.getRoles().add(role);
         return ResponseEntity.ok(userRepository.save(users));
     }

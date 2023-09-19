@@ -7,7 +7,7 @@ CREATE TABLE users (
                        id BIGSERIAL PRIMARY KEY,
                        username text NOT NULL UNIQUE,
                        password text NOT NULL,
-                       fullName text not null
+                       full_name text not null
 );
 
 CREATE TABLE users_roles (
