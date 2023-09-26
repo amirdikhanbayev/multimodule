@@ -22,3 +22,7 @@ server:
 logging:
   level:
     com:example: debug
+
+security:
+  api-key: X-API-KEY
+  api-key-value: Shrek

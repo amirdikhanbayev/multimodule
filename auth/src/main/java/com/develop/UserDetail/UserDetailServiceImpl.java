@@ -1,11 +1,9 @@
 package com.develop.UserDetail;
 
-import com.develop.Model.Roles;
 import com.develop.Model.Users;
 import com.develop.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,10 +13,9 @@ import org.springframework.stereotype.Service;
 
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
 @Service("userDetailsService")
 @RequiredArgsConstructor
 public class UserDetailServiceImpl implements UserDetailsService {
