@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
 @Configuration
@@ -22,7 +23,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class SecurityConfig{
-    private final UserDetailServiceImpl service;
+    private final UserDetailsService service;
+
     @Bean
     public AuthenticationManager authenticationManager(){
         DaoAuthenticationProvider authenticationProvider =
@@ -48,8 +50,8 @@ public class SecurityConfig{
                                 .antMatchers("/api/auth/create").permitAll()
                                 .anyRequest().authenticated()
                 )
-                .addFilter(new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager()));
-
+                .addFilter(new CustomAuthenticationFilter(authenticationManager()))
+                .addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
