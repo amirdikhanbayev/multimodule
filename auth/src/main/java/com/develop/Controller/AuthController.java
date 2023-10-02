@@ -11,7 +11,6 @@ import com.develop.Repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +35,6 @@ public class AuthController {
 
 
     @PostMapping("/create")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<Users> create(@RequestBody Users users){
         users.setPassword(passwordEncoder.encode(users.getPassword()));
         return ResponseEntity.ok(userRepository.save(users));
