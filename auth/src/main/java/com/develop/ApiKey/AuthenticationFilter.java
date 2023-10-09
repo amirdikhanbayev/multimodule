@@ -4,7 +4,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
-import org.springframework.web.filter.GenericFilterBean;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -26,6 +25,8 @@ public class AuthenticationFilter extends AbstractPreAuthenticatedProcessingFilt
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         }
+
+        filterChain.doFilter(servletRequest,servletResponse);
     }
 
     @Override

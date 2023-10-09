@@ -8,3 +8,6 @@ spring:
       port: 27021
       host: localhost
       auto-index-creation: true
+
+server:
+  port: 8082

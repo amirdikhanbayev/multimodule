@@ -1,5 +1,6 @@
-package com.develop.handler;
+package com.develop.handler.apiKey;
 
+import com.develop.handler.apiKey.ApiKeyAuthentication;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;

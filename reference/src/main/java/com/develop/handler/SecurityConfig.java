@@ -1,8 +1,9 @@
 package com.develop.handler;
 
+import com.develop.handler.Jwt.CustomAuthorizationFilter;
+import com.develop.handler.apiKey.AuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,38 +18,50 @@ import javax.servlet.http.HttpServletRequest;
 public class SecurityConfig {
 
     @Bean
-    @Order(2)
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception{
-        httpSecurity.csrf()
-                .disable()
-                .authorizeRequests()
-                .antMatchers("/**")
-                .authenticated()
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+        http
+                .requestMatcher(new ApiKeyMatcher(true))
+                .authorizeRequests(authorizeRequests ->
+                        authorizeRequests
+                                .antMatchers("/api/dictionary/**").permitAll()
+                                .anyRequest().authenticated()
+                )
+                .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .httpBasic()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .addFilterBefore(new AuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-
-        return httpSecurity.build();
+                .addFilter(new AuthenticationFilter());
+        return http.build();
     }
 
     @Bean
-    @Order(1)
-    public SecurityFilterChain JwtFilterChain(HttpSecurity httpSecurity) throws Exception{
-        httpSecurity.csrf().disable()
-                .
+    public SecurityFilterChain JwtFilterChain(HttpSecurity http) throws Exception{
+        http
+                .requestMatcher(new ApiKeyMatcher(false))
+                .authorizeRequests(authorizeRequests ->
+                        authorizeRequests
+                                .antMatchers("/api/dictionary/**").permitAll()
+                                .anyRequest().authenticated()
+                )
+                .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+        return http.build();
     }
 
 
 
-    static class ApiKeyMatcher implements RequestMatcher{
+    static class ApiKeyMatcher implements RequestMatcher {
+        private final boolean hasApiKey;
+
+        public ApiKeyMatcher(boolean hasApiKey) {
+            this.hasApiKey = hasApiKey;
+        }
+
         @Override
         public boolean matches(HttpServletRequest request) {
-            String apiKey = request.getHeader("X-API-KEY")
-            return false;
+            String apiKey = request.getHeader("X-API-KEY");
+            return (hasApiKey && apiKey != null) || (!hasApiKey && apiKey == null);
         }
     }
 }

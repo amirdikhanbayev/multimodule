@@ -1,10 +1,12 @@
 package com.develop.Handler;
 
 import com.develop.ApiKey.AuthenticationFilter;
+import com.develop.ApiKey.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ProviderManager;
@@ -13,6 +15,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +30,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 
@@ -51,11 +56,12 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(1)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.requestMatcher(new ApiKeyMatcher())
+        http
+                .requestMatcher(new ApiKeyMatcher(false))
                 .authorizeRequests(authorizeRequests ->
-                        authorizeRequests.antMatchers("/api/auth/create").permitAll()
+                        authorizeRequests
+                                .antMatchers("/api/auth/create").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .csrf().disable()
@@ -68,43 +74,33 @@ public class SecurityConfig {
 
 
     @Bean
-    @Order(2)
     public SecurityFilterChain filterChain2(HttpSecurity http) throws Exception {
-        http.requestMatcher()
-                .authorizeRequests().antMatchers("/api/auth/**").permitAll()
-                .and().formLogin().permitAll()
-                .and().csrf().disable().cors().disable().logout().permitAll()
-                .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and().addFilter(new AuthenticationFilter()).authorizeRequests()
-                .anyRequest().authenticated();
+        http
+                .requestMatcher(new ApiKeyMatcher(true))
+                .authorizeRequests(authorizeRequests ->
+                        authorizeRequests
+                                .antMatchers("/api/auth/**").permitAll()
+                                .anyRequest().authenticated()
+                )
+                .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .addFilter(new AuthenticationFilter());
         return http.build();
     }
 
     static class ApiKeyMatcher implements RequestMatcher {
+        private final boolean hasApiKey;
+
+        public ApiKeyMatcher(boolean hasApiKey) {
+            this.hasApiKey = hasApiKey;
+        }
+
         @Override
         public boolean matches(HttpServletRequest request) {
             String apiKey = request.getHeader("X-API-KEY");
-            return apiKey == null;
+            return (hasApiKey && apiKey != null) || (!hasApiKey && apiKey == null);
         }
     }
-
-    static class ApiKeyAuthFilter extends AbstractPreAuthenticatedProcessingFilter {
-
-        @Override
-        protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
-            return request.getHeader("X-API-KEY");
-        }
-
-        @Override
-        protected Object getPreAuthenticatedCredentials(HttpServletRequest request) {
-            return null;
-        }
-
-        @Override
-        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-            super.doFilter(request, response, chain);
-        }
-    }
-
 
 }

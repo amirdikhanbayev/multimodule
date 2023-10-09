@@ -12,7 +12,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/dictionary")
 public class DictionaryDocumentController {
     private final DictionaryDocumentService dictionaryDocumentService;
 
